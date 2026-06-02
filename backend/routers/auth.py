@@ -4,17 +4,17 @@ from fastapi import HTTPException
 
 from sqlalchemy.orm import Session
 
-from app.core.database import get_db
+from backend.core.database import get_db
 
-from app.core.security import (
+from backend.core.security import (
     hash_password,
     verify_password,
     create_access_token
 )
 
-from app.models.user import User
+from backend.models.user import User
 
-from app.schemas.user import (
+from backend.schemas.user import (
     UserCreate,
     UserLogin,
     UserRead,
@@ -22,7 +22,7 @@ from app.schemas.user import (
     MessageResponse
 )
 
-from app.dependencies.auth import (
+from backend.dependencies.auth import (
     get_current_user
 )
 
