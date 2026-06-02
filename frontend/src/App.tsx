@@ -2,14 +2,18 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import RegisterPage from './pages/RegisterPage'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
+import DocumentsPage from './pages/DocumentsPage'
+import ChatPage from './pages/ChatPage'
+import SettingsPage from './pages/SettingsPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import PublicRoute from './components/PublicRoute'
+import DashboardLayout from './components/DashboardLayout'
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/login" replace />} />
-      
+
       <Route
         path="/register"
         element={
@@ -28,11 +32,19 @@ function App() {
         }
       />
 
-      <Route path="/dashboard" element={
-        <ProtectedRoute>
-          <DashboardPage />
-        </ProtectedRoute>
-      } />
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<DashboardPage />} />
+        <Route path="documents" element={<DocumentsPage />} />
+        <Route path="chat" element={<ChatPage />} />
+        <Route path="settings" element={<SettingsPage />} />
+      </Route>
     </Routes>
   )
 }
