@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     secret_key: str
     access_token_expire_minutes: int = 30
     algorithm: str = "HS256"
+    redis_url: str = "redis://localhost:6379/0"
     cors_origins: list[str] = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",

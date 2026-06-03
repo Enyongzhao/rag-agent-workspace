@@ -4,13 +4,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.core.config import settings
 from backend.core.database import (
     Base,
-    engine
+    engine,
+    SessionLocal,
 )
 
 from backend.routers.auth import (
     router as auth_router
 )
 
+from sqlalchemy import text
+from backend.core.redis import ping_redis
 
 Base.metadata.create_all(
     bind=engine
@@ -34,6 +37,32 @@ app.include_router(
 
 @app.get("/api/health")
 async def health_check():
+    db_status = "ok"
+    redis_status = "ok"
+
+    try:
+        db = SessionLocal()
+        db.execute(text("SELECT 1"))
+    except Exception:
+        db_status = "error"
+    finally:
+        db.close()
+
+    try:
+        await ping_redis()
+    except Exception:
+        redis_status = "error"
+
+    overall_status = (
+        "ok"
+        if db_status == "ok" and redis_status == "ok"
+        else "error"
+    )
+
     return {
-        "status": "ok"
+        "status": overall_status,
+        "services": {
+            "database": db_status,
+            "redis": redis_status,
+        },
     }
