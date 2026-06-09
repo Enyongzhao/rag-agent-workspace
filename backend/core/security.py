@@ -27,7 +27,7 @@ def verify_password(
 
 def create_access_token(
     data: dict,
-)-> str:
+) -> str:
     
     to_encode = data.copy()
 
@@ -49,19 +49,26 @@ def create_access_token(
     return encode_jwt
 
 
-def verify_token(token: str) -> str | None:
+def decode_access_token(token: str) -> dict | None:
     try:
-
         payload = jwt.decode(
             token,
             settings.secret_key,
             algorithms=[settings.algorithm]
         )
 
-        email: str | None = payload.get("sub")
-        
-        return email
+        return payload
 
     except JWTError:
-        
         return None
+
+
+def verify_token(token: str) -> str | None:
+    payload = decode_access_token(token)
+
+    if payload is None:
+        return None
+
+    email: str | None = payload.get("sub")
+
+    return email

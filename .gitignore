@@ -53,3 +53,6 @@ dist/
 coverage/
 htmlcov/
 .coverage
+
+# Storage
+storage/

@@ -1,14 +1,15 @@
-# Agent Workspace Backend
+# Agent Workspace
 
-FastAPI backend with user registration, login, JWT authentication, and PostgreSQL.
+Full-stack learning scaffold with FastAPI, PostgreSQL, Redis, JWT auth, React, TypeScript, React Query, Zustand, Tailwind CSS, and Docker Compose.
 
 ## Project Structure
 
 ```text
-app/
+backend/
   core/
     config.py
     database.py
+    redis.py
     security.py
   dependencies/
     auth.py
@@ -23,26 +24,40 @@ app/
 
 ## Environment Variables
 
-Create a `.env` file in the project root:
+Create a `.env` file in the project root for running the backend outside Docker:
 
 ```env
-DATABASE_URL=postgresql://postgres:password@localhost:5432/my_agent
+DATABASE_URL=postgresql://postgres:password@localhost:5433/rag_agent
 SECRET_KEY=change-me
 ACCESS_TOKEN_EXPIRE_MINUTES=30
+REDIS_URL=redis://localhost:6379/0
 ```
 
-## Install Dependencies
+## Run With Docker
+
+Start PostgreSQL, Redis, FastAPI, and React:
+
+```bash
+docker compose up -d
+```
+
+Backend:
+
+```text
+http://127.0.0.1:8000
+```
+
+Frontend:
+
+```text
+http://127.0.0.1:5173
+```
+
+## Run Backend Locally
 
 ```bash
 pip install -r requirements.txt
-```
-
-## Run Backend
-
-Start the FastAPI development server:
-
-```bash
-uvicorn app.main:app --reload
+uvicorn backend.main:app --reload
 ```
 
 The API will be available at:
@@ -116,3 +131,5 @@ Header:
 ```text
 Authorization: Bearer <access_token>
 ```
+
+Login creates a short-lived JWT and stores the active session in Redis. The login endpoint also has basic per-IP rate limiting backed by Redis.

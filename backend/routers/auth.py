@@ -1,8 +1,10 @@
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import HTTPException
+from fastapi import Request
 
 from sqlalchemy.orm import Session
+from uuid import uuid4
 
 from backend.core.database import get_db
 
@@ -11,6 +13,11 @@ from backend.core.security import (
     verify_password,
     create_access_token
 )
+from backend.core.redis import (
+    hit_rate_limit,
+    set_session,
+)
+from backend.core.config import settings
 
 from backend.models.user import User
 
@@ -90,9 +97,22 @@ async def register(
     response_model=Token
 )
 async def login(
+    request: Request,
     user: UserLogin,
     db: Session = Depends(get_db)
 ):
+    client_host = request.client.host if request.client else "unknown"
+    is_limited = await hit_rate_limit(
+        key=f"rate:login:{client_host}",
+        limit=5,
+        window_seconds=60,
+    )
+
+    if is_limited:
+        raise HTTPException(
+            status_code=429,
+            detail="Too many login attempts. Please try again later."
+        )
 
     db_user = (
         db.query(User)
@@ -115,10 +135,19 @@ async def login(
             detail="Could not validate credentials"
         )
 
+    session_id = str(uuid4())
+
     token = create_access_token(
         {
-            "sub": db_user.email
+            "sub": db_user.email,
+            "jti": session_id,
         }
+    )
+
+    await set_session(
+        session_id=session_id,
+        user_email=db_user.email,
+        ttl_seconds=settings.access_token_expire_minutes * 60,
     )
 
     return {

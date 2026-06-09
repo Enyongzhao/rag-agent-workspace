@@ -12,6 +12,8 @@ from backend.routers.auth import (
     router as auth_router
 )
 
+from backend.routers.documents import router as documents_router
+
 from sqlalchemy import text
 from backend.core.redis import ping_redis
 
@@ -31,7 +33,12 @@ app.add_middleware(
 
 
 app.include_router(
-    auth_router
+    auth_router,
+)
+
+
+app.include_router(
+    documents_router,
 )
 
 
