@@ -10,7 +10,8 @@ from backend.dependencies.auth import get_current_user
 from backend.models.document import Document
 from backend.models.user import User
 from backend.schemas.document import DocumentRead
-
+from backend.services.document_processor import load_and_split_pdf
+from backend.services.vector_store import index_document_chunks
 
 router = APIRouter(
     prefix="/api/documents",
@@ -43,6 +44,8 @@ async def upload_document(
 
     with open(file_path, "wb") as output_file:
         output_file.write(content)
+    
+    chunks = load_and_split_pdf(str(file_path))
 
     document = Document(
         owner_id=current_user.id,
@@ -50,13 +53,26 @@ async def upload_document(
         stored_filename=stored_filename,
         content_type=file.content_type,
         file_path=str(file_path),
-        status="uploaded",
+        status="processed",
+        chunk_count=len(chunks),
     )
 
     db.add(document)
     db.commit()
     db.refresh(document)
 
+    indexed_count = index_document_chunks(
+        document_id=document.id,
+        user_id=current_user.id,
+        chunks=chunks,
+    )
+
+    document.status = "indexed"
+    document.chunk_count = indexed_count
+
+    db.commit()
+    db.refresh(document)
+    
     return document
 
 @router.get(

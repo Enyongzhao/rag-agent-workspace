@@ -9,7 +9,8 @@ class DocumentRead(BaseModel):
     content_type: str
     status: str
     created_at: datetime
-
+    chunk_count: int
+    
     model_config = {
         "from_attributes": True
     }

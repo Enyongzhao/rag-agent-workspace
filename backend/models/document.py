@@ -17,7 +17,8 @@ class Document(Base):
     stored_filename = Column(String, nullable=False, unique=True)
     content_type = Column(String, nullable=False)
     file_path = Column(String, nullable=False)
-
+    chunk_count = Column(Integer, nullable=False, default=0)
+    
     status = Column(String, nullable=False, default="uploaded")
 
     created_at = Column(

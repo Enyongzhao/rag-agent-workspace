@@ -8,6 +8,9 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
     redis_url: str = "redis://localhost:6379/0"
     upload_dir: str = "storage/uploads"
+    chroma_dir: str = "storage/chroma"
+    chroma_collection_name: str = "documents"
+    embedding_model_name: str = "sentence-transformers/all-MiniLM-L6-v2"
     cors_origins: list[str] = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",

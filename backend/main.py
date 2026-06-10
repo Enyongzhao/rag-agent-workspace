@@ -17,6 +17,8 @@ from backend.routers.documents import router as documents_router
 from sqlalchemy import text
 from backend.core.redis import ping_redis
 
+from backend.routers.rag import router as rag_router
+
 Base.metadata.create_all(
     bind=engine
 )
@@ -39,6 +41,11 @@ app.include_router(
 
 app.include_router(
     documents_router,
+)
+
+
+app.include_router(
+    rag_router,
 )
 
 
