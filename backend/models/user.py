@@ -28,3 +28,9 @@ class User(Base):
     hashed_password = Column(
         String
     )
+
+    role = Column(
+        String,
+        nullable=False,
+        default="user"
+    )

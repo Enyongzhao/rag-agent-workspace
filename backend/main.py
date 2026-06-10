@@ -13,11 +13,12 @@ from backend.routers.auth import (
 )
 
 from backend.routers.documents import router as documents_router
-
+from backend.routers.users import router as users_router
+from backend.routers.rag import router as rag_router
 from sqlalchemy import text
 from backend.core.redis import ping_redis
 
-from backend.routers.rag import router as rag_router
+
 
 Base.metadata.create_all(
     bind=engine
@@ -46,6 +47,11 @@ app.include_router(
 
 app.include_router(
     rag_router,
+)
+
+
+app.include_router(
+    users_router,
 )
 
 

@@ -62,6 +62,10 @@ function DashboardPage() {
             <dt className="text-slate-500">Email</dt>
             <dd className="font-medium text-slate-900">{user.email}</dd>
           </div>
+          <div className="flex justify-between gap-4">
+            <dt className="text-slate-500">Role</dt>
+            <dd className="font-medium text-slate-900">{user.role}</dd>
+          </div>
         </dl>
       </div>
 
