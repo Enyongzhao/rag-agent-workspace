@@ -57,7 +57,7 @@ def search_user_documents(
     question: str,
     document_id: int | None = None,
     k: int = 4,
-) -> list[Document]:
+) -> list[tuple[Document, float]]:
     vector_store = get_vector_store()
     filter_query = {"user_id": user_id}
 
@@ -69,7 +69,7 @@ def search_user_documents(
             ],
         }
 
-    results = vector_store.similarity_search(
+    results = vector_store.similarity_search_with_score(
         query=question,
         k=k,
         filter=filter_query,

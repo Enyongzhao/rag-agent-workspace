@@ -15,6 +15,7 @@ interface ChatMessage {
 function ChatPage() {
   const [question, setQuestion] = useState('')
   const [selectedDocumentId, setSelectedDocumentId] = useState<string>('all')
+  const [topK, setTopK] = useState(4)
   const [messages, setMessages] = useState<ChatMessage[]>([])
 
   const documentsQuery = useQuery({
@@ -57,6 +58,7 @@ function ChatPage() {
 
     queryMutation.mutate({
       question: trimmedQuestion,
+      top_k: topK,
       ...(selectedDocumentId !== 'all'
         ? { document_id: Number(selectedDocumentId) }
         : {}),
@@ -67,7 +69,7 @@ function ChatPage() {
 
   const steps = [
     'Embedded the question',
-    'Retrieved relevant document chunks',
+    `Retrieved top ${topK} document chunks`,
     'Generated an answer with OpenAI',
     'Returned answer with sources',
   ]
@@ -139,7 +141,8 @@ function ChatPage() {
                             {getSourceTitle(source, index)}
                           </span>
                           <span className="text-xs text-slate-500">
-                            {getSourcePageLabel(source)}
+                            {getSourcePageLabel(source)} · Distance{' '}
+                            {source.score.toFixed(3)}
                           </span>
                         </div>
                         <p className="line-clamp-6 whitespace-pre-wrap text-xs leading-5">
@@ -182,6 +185,24 @@ function ChatPage() {
                     {document.original_filename}
                   </option>
                 ))}
+              </select>
+            </label>
+
+            <label className="mb-3 block">
+              <span className="mb-1 block text-xs font-medium text-slate-600">
+                Sources
+              </span>
+              <select
+                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+                value={topK}
+                disabled={queryMutation.isPending}
+                onChange={(event) => setTopK(Number(event.target.value))}
+              >
+                <option value={3}>3 sources</option>
+                <option value={4}>4 sources</option>
+                <option value={6}>6 sources</option>
+                <option value={8}>8 sources</option>
+                <option value={10}>10 sources</option>
               </select>
             </label>
 

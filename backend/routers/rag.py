@@ -10,8 +10,9 @@ from backend.schemas.rag import (
     RagQueryResponse,
     RagSource,
 )
-from backend.services.vector_store import search_user_documents
 from backend.services.rag_answer import generate_rag_answer
+from backend.services.vector_store import search_user_documents
+
 
 router = APIRouter(
     prefix="/api/rag",
@@ -28,8 +29,6 @@ async def query_rag(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    requested_document = None
-
     if request.document_id is not None:
         requested_document = (
             db.query(Document)
@@ -50,16 +49,22 @@ async def query_rag(
         user_id=current_user.id,
         question=request.question,
         document_id=request.document_id,
+        k=request.top_k,
     )
+
+    documents = [
+        document
+        for document, _score in results
+    ]
 
     answer = generate_rag_answer(
         question=request.question,
-        documents=results,
+        documents=documents,
     )
 
     document_ids = {
         document.metadata.get("document_id")
-        for document in results
+        for document in documents
         if isinstance(document.metadata.get("document_id"), int)
     }
 
@@ -79,7 +84,7 @@ async def query_rag(
 
     sources = []
 
-    for document in results:
+    for document, score in results:
         metadata = dict(document.metadata)
         source_document_id = metadata.get("document_id")
 
@@ -93,6 +98,7 @@ async def query_rag(
             RagSource(
                 content=document.page_content,
                 metadata=metadata,
+                score=score,
             )
         )
 
