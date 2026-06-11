@@ -11,12 +11,17 @@ from backend.models.document import Document
 from backend.models.user import User
 from backend.schemas.document import DocumentRead
 from backend.services.document_processor import load_and_split_pdf
-from backend.services.vector_store import index_document_chunks
+from backend.services.vector_store import (
+    delete_document_vectors,
+    index_document_chunks,
+)
+
 
 router = APIRouter(
     prefix="/api/documents",
     tags=["Documents"],
 )
+
 
 @router.post(
     "/upload",
@@ -75,6 +80,7 @@ async def upload_document(
     
     return document
 
+
 @router.get(
     "",
     response_model=list[DocumentRead],
@@ -91,3 +97,31 @@ async def list_documents(
     )
 
     return documents
+
+@router.delete(
+    "/{document_id}",
+    status_code=204,
+)
+async def delete_document(
+    document_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    document = (
+        db.query(Document)
+        .filter(Document.id == document_id, Document.owner_id == current_user.id)
+        .first()
+    )
+
+    if not document:
+        raise HTTPException(
+            status_code=404,
+            detail="Document not found",
+        )
+
+    delete_document_vectors(document_id=document.id)
+
+    Path(document.file_path).unlink(missing_ok=True)
+    
+    db.delete(document)
+    db.commit()

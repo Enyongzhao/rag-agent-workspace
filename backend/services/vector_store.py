@@ -76,3 +76,13 @@ def delete_user_vectors(user_id: int) -> None:
             "user_id": user_id,
         },
     )
+
+
+def delete_document_vectors(document_id: int) -> None:
+    vector_store = get_vector_store()
+
+    vector_store._collection.delete(
+        where={
+            "document_id": document_id,
+        },
+    )

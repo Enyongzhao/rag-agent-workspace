@@ -24,3 +24,9 @@ export async function uploadDocument(file: File): Promise<DocumentItem> {
 
   return response.data
 }
+
+export async function deleteDocument(
+  documentId: number,
+): Promise<void> {
+  await apiClient.delete(`/api/documents/${documentId}`)
+}

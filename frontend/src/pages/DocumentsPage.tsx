@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { getDocuments, uploadDocument } from '../api/documents'
+import { deleteDocument, getDocuments, uploadDocument } from '../api/documents'
 import { getApiErrorMessage } from '../api/errors'
 
 function DocumentsPage() {
@@ -22,6 +22,15 @@ function DocumentsPage() {
       })
     },
   })
+  
+  const deleteMutation = useMutation({
+    mutationFn: deleteDocument,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['documents'],
+      })
+    },
+  })
 
   const documents = documentsQuery.data ?? []
 
@@ -31,6 +40,18 @@ function DocumentsPage() {
     }
 
     uploadMutation.mutate(selectedFile)
+  }
+
+  function handleDeleteDocument(documentId: number) {
+    const shouldDelete = window.confirm(
+      'Are you sure you want to delete this document?',
+    )
+
+    if (!shouldDelete) {
+      return
+    }
+
+    deleteMutation.mutate(documentId)
   }
 
   return (
@@ -143,9 +164,20 @@ function DocumentsPage() {
                   </p>
                 </div>
 
-                <span className="w-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
-                  {document.status}
-                </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="w-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
+                    {document.status}
+                  </span>
+                            
+                  <button
+                    className="rounded-md border border-red-200 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:text-red-300"
+                    type="button"
+                    onClick={() => handleDeleteDocument(document.id)}
+                    disabled={deleteMutation.isPending}
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             ))}
           </div>
