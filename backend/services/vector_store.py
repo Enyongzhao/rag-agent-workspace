@@ -66,3 +66,13 @@ def search_user_documents(
     )
 
     return results
+
+
+def delete_user_vectors(user_id: int) -> None:
+    vector_store = get_vector_store()
+
+    vector_store._collection.delete(
+        where={
+            "user_id": user_id,
+        },
+    )

@@ -1,15 +1,19 @@
+from pathlib import Path
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from backend.core.database import get_db
+from backend.core.security import hash_password
 from backend.dependencies.auth import get_current_admin_user
+from backend.models.document import Document
 from backend.models.user import User
 from backend.schemas.user import (
     UserAdminCreate,
     UserAdminUpdate,
     UserRead,
 )
-from backend.core.security import hash_password
+from backend.services.vector_store import delete_user_vectors
 
 router = APIRouter(
     prefix="/api/users",
@@ -187,6 +191,18 @@ async def delete_user(
             status_code=400,
             detail="You cannot delete yourself"
         )
+
+    documents = (
+        db.query(Document)
+        .filter(Document.owner_id == user_id)
+        .all()
+    )
+
+    delete_user_vectors(user_id)
+
+    for document in documents:
+        Path(document.file_path).unlink(missing_ok=True)
+        db.delete(document)
 
     db.delete(db_user)
     db.commit()
