@@ -5,9 +5,11 @@ export interface RagSource {
 
 export interface RagQueryRequest {
   question: string
+  document_id?: number
 }
 
 export interface RagQueryResponse {
   question: string
-  results: RagSource[]
+  answer: string
+  sources: RagSource[]
 }

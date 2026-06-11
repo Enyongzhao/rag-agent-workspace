@@ -69,6 +69,7 @@ async def upload_document(
     indexed_count = index_document_chunks(
         document_id=document.id,
         user_id=current_user.id,
+        original_filename=document.original_filename,
         chunks=chunks,
     )
 

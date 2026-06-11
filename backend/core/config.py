@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     chroma_dir: str = "storage/chroma"
     chroma_collection_name: str = "documents"
     embedding_model_name: str = "sentence-transformers/all-MiniLM-L6-v2"
+    openai_api_key: str
+    openai_model: str = "gpt-4o-mini"
     cors_origins: list[str] = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",

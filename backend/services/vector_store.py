@@ -24,6 +24,7 @@ def get_vector_store() -> Chroma:
 def index_document_chunks(
     document_id: int,
     user_id: int,
+    original_filename: str,
     chunks: list[Document],
 ) -> int:
     vector_store = get_vector_store()
@@ -36,6 +37,7 @@ def index_document_chunks(
             **chunk.metadata,
             "document_id": document_id,
             "user_id": user_id,
+            "original_filename": original_filename,
             "chunk_index": index,
         }
 
@@ -53,16 +55,24 @@ def index_document_chunks(
 def search_user_documents(
     user_id: int,
     question: str,
+    document_id: int | None = None,
     k: int = 4,
 ) -> list[Document]:
     vector_store = get_vector_store()
+    filter_query = {"user_id": user_id}
+
+    if document_id is not None:
+        filter_query = {
+            "$and": [
+                {"user_id": user_id},
+                {"document_id": document_id},
+            ],
+        }
 
     results = vector_store.similarity_search(
         query=question,
         k=k,
-        filter={
-            "user_id": user_id,
-        },
+        filter=filter_query,
     )
 
     return results

@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 
 class RagQueryRequest(BaseModel):
     question: str = Field(min_length=1, max_length=1000)
+    document_id: int | None = None
 
 
 class RagSource(BaseModel):
@@ -14,4 +15,5 @@ class RagSource(BaseModel):
 
 class RagQueryResponse(BaseModel):
     question: str
-    results: list[RagSource]
+    answer: str
+    sources: list[RagSource]

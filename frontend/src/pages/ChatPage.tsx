@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { queryRag } from '../api/rag'
+import { getDocuments } from '../api/documents'
 import { getApiErrorMessage } from '../api/errors'
 import type { RagSource } from '../types/rag'
 
@@ -13,23 +14,24 @@ interface ChatMessage {
 
 function ChatPage() {
   const [question, setQuestion] = useState('')
+  const [selectedDocumentId, setSelectedDocumentId] = useState<string>('all')
   const [messages, setMessages] = useState<ChatMessage[]>([])
+
+  const documentsQuery = useQuery({
+    queryKey: ['documents'],
+    queryFn: getDocuments,
+  })
 
   const queryMutation = useMutation({
     mutationFn: queryRag,
     onSuccess: (data) => {
-      const sourceSummary =
-        data.results.length > 0
-          ? `Found ${data.results.length} relevant chunks.`
-          : 'No relevant chunks found.'
-
       setMessages((currentMessages) => [
         ...currentMessages,
         {
           id: Date.now() + 1,
           role: 'assistant',
-          content: sourceSummary,
-          sources: data.results,
+          content: data.answer,
+          sources: data.sources,
         },
       ])
     },
@@ -55,6 +57,9 @@ function ChatPage() {
 
     queryMutation.mutate({
       question: trimmedQuestion,
+      ...(selectedDocumentId !== 'all'
+        ? { document_id: Number(selectedDocumentId) }
+        : {}),
     })
 
     setQuestion('')
@@ -62,9 +67,34 @@ function ChatPage() {
 
   const steps = [
     'Embedded the question',
-    'Searched indexed document chunks',
-    'Returned the most relevant sources',
+    'Retrieved relevant document chunks',
+    'Generated an answer with OpenAI',
+    'Returned answer with sources',
   ]
+
+  const searchableDocuments = (documentsQuery.data ?? []).filter(
+    (document) => document.status === 'indexed',
+  )
+
+  function getSourceTitle(source: RagSource, index: number) {
+    const filename = source.metadata.original_filename
+
+    if (typeof filename === 'string' && filename.length > 0) {
+      return filename
+    }
+
+    return `Source ${index + 1}`
+  }
+
+  function getSourcePageLabel(source: RagSource) {
+    const page = source.metadata.page
+
+    if (typeof page === 'number') {
+      return `Page ${page + 1}`
+    }
+
+    return 'Page unknown'
+  }
 
   return (
     <section className="flex h-[calc(100vh-4rem)] flex-col">
@@ -106,10 +136,10 @@ function ChatPage() {
                       >
                         <div className="mb-2 flex items-center justify-between gap-3">
                           <span className="text-xs font-semibold text-slate-900">
-                            Source {index + 1}
+                            {getSourceTitle(source, index)}
                           </span>
                           <span className="text-xs text-slate-500">
-                            Page {String(source.metadata.page ?? 'unknown')}
+                            {getSourcePageLabel(source)}
                           </span>
                         </div>
                         <p className="line-clamp-6 whitespace-pre-wrap text-xs leading-5">
@@ -136,6 +166,25 @@ function ChatPage() {
           </div>
 
           <form className="border-t border-slate-200 p-4" onSubmit={handleSubmit}>
+            <label className="mb-3 block">
+              <span className="mb-1 block text-xs font-medium text-slate-600">
+                Search scope
+              </span>
+              <select
+                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+                value={selectedDocumentId}
+                disabled={queryMutation.isPending || documentsQuery.isPending}
+                onChange={(event) => setSelectedDocumentId(event.target.value)}
+              >
+                <option value="all">All indexed documents</option>
+                {searchableDocuments.map((document) => (
+                  <option key={document.id} value={String(document.id)}>
+                    {document.original_filename}
+                  </option>
+                ))}
+              </select>
+            </label>
+
             <div className="flex gap-3">
               <input
                 className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
