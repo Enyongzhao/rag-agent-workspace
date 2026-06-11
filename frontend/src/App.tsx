@@ -8,6 +8,8 @@ import SettingsPage from './pages/SettingsPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import PublicRoute from './components/PublicRoute'
 import DashboardLayout from './components/DashboardLayout'
+import AdminUsersPage from './pages/AdminUsersPage'
+import AdminRoute from './components/AdminRoute'
 
 function App() {
   return (
@@ -44,6 +46,14 @@ function App() {
         <Route path="documents" element={<DocumentsPage />} />
         <Route path="chat" element={<ChatPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        <Route
+          path="admin/users"
+          element={
+            <AdminRoute>
+              <AdminUsersPage />
+            </AdminRoute>
+          }
+        />
       </Route>
     </Routes>
   )

@@ -1,9 +1,19 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
+import { useQuery } from '@tanstack/react-query'
+import { getCurrentUser } from '../api/auth'
 
 function DashboardLayout() {
   const navigate = useNavigate()
   const logout = useAuthStore((state) => state.logout)
+
+  const currentUserQuery = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: getCurrentUser,
+  })
+
+  const currentUser = currentUserQuery.data
+  const isAdmin = currentUser?.role === 'admin'
 
   function handleLogout() {
     logout()
@@ -38,6 +48,11 @@ function DashboardLayout() {
             <NavLink to="/dashboard/settings" className={linkClass}>
               Settings
             </NavLink>
+            {isAdmin && (
+              <NavLink to="/dashboard/admin/users" className={linkClass}>
+                Users
+              </NavLink>
+            )}
           </nav>
 
           <button
